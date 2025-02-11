@@ -9,17 +9,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   set(CMAKE_CXX_FLAGS_RELEASE
-      "-O3 -funroll-loops -funroll-all-loops -fstrict-aliasing -pthread")
+      "-O3 -funroll-loops -funroll-all-loops -fstrict-aliasing")
   set(CMAKE_C_FLAGS_RELEASE
-      "-O3 -funroll-loops -funroll-all-loops -fstrict-aliasing -pthread")
+      "-O3 -funroll-loops -funroll-all-loops -fstrict-aliasing")
 
   set(CMAKE_CXX_FLAGS_DEBUG "-g3")
   set(CMAKE_C_FLAGS_DEBUG "-g3")
-
-  set(CMAKE_CXX_FLAGS_RELEASE
-      "${CMAKE_CXX_FLAGS_RELEASE} -D_GLIBCXX_USE_CXX11_ABI=0")
-  set(CMAKE_CXX_FLAGS_DEBUG
-      "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_USE_CXX11_ABI=0")
 
   # set(CMAKE_Fortran_FLAGS_RELEASE "-O3" )
   set(KNOWN_COMPILER TRUE)
@@ -42,8 +37,10 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   add_link_options("-fuse-ld=lld")
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
-  set(CMAKE_CXX_FLAGS_RELEASE "-O3 -lstdc++")
-  set(CMAKE_C_FLAGS_RELEASE "-O3 -lstdc++")
+  set(CMAKE_CXX_FLAGS_RELEASE
+      "-O3 -lstdc++")
+  set(CMAKE_C_FLAGS_RELEASE
+      "-O3 -lstdc++")
 
   set(CMAKE_CXX_FLAGS_DEBUG "-g3")
   set(CMAKE_C_FLAGS_DEBUG "-g3")

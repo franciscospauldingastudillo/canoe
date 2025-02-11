@@ -1,11 +1,16 @@
 # configuration for straka hydrodynamcis
 
-# athena variables
-set(NUMBER_GHOST_CELLS 3)
-set(EQUATION_OF_STATE shallow_yz)
-set(NON_BAROTROPIC_EOS 0)
+macro(SET_IF_EMPTY _variable)
+  if("${${_variable}}" STREQUAL "")
+    set(${_variable} ${ARGN})
+  endif()
+endmacro()
 
-# canoe variables
+# athena variables
+set_if_empty(NUMBER_GHOST_CELLS 3)
+
+# canoe configure
+set(EOS "shallow_yz")
 set(NETCDF ON)
 set(MPI ON)
 set(HYDROSTATIC ON)

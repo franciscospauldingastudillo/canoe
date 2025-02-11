@@ -1,12 +1,14 @@
 # configuration for polar vortex simulation
 
-# athena variables
-set(NUMBER_GHOST_CELLS 3)
-set(EQUATION_OF_STATE shallow_xy)
-set(NON_BAROTROPIC_EOS 0)
-set(RSOLVER roe_shallow_xy)
+macro(SET_IF_EMPTY _variable)
+  if("${${_variable}}" STREQUAL "")
+    set(${_variable} ${ARGN})
+  endif()
+endmacro()
 
-# canoe variables
-set(NETCDF ON)
+# athena variables
+set_if_empty(NUMBER_GHOST_CELLS 3)
+
+set(EOS shallow_xy)
 set(PNETCDF ON)
 set(MPI ON)
