@@ -54,8 +54,12 @@ nx2        = 50
 nx3        = 1
 
 <hydro>
-grav_acc1   = -9.8
-gamma       = 1.4         # gamma = C_p/C_v
+grav_acc1     = -9.8
+gamma         = 1.4       # gamma = C_p/C_v (no role in thermo calc.; only for sound speed)
+coriolis_acc1 = 0.0       # rotation in vertical   (rad/s; cartesian)
+coriolis_acc2 = 0.0       # rotation in horizontal (rad/s; cartesian)
+coriolis_acc3 = 0.0       # rotation in horizontal (rad/s; cartesian)
+
 
 <thermodynamics>
 Rd          = 287.
@@ -71,3 +75,5 @@ a     = 50.
 p0    = 1.E5
 Ts    = 303.15
 uniform_bubble = false
+btau  = 3600.
+btem  = 303.15

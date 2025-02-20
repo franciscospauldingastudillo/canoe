@@ -33,8 +33,9 @@
 
 // @sect3{Preamble}
 
-// We only need one global variables here, the surface pressure
-Real p0;
+// We need 3 global variables here
+// for communication between InitUserMeshData and forcing functions
+Real p0, btau, btem;
 
 // Same as that in @ref straka, make outputs of temperature and potential
 // temperature.
@@ -57,9 +58,70 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
       }
 }
 
+// Surface forcing function (Newtonian relaxation)
+// The first step is to define a function that takes a pointer to
+// the MeshBlock as an argument such that we can access all physics via this
+// pointer. The name of this function is not important. It can be anything. But
+// the order and types of the arguments must be <code>(MeshBlock *, Real const,
+// Real const, AthenaArray<Real> const&, AthenaArray<Real> const&,
+// AthenaArray<Real> &)</code>. They are called the signature of the function.
+// src/forcing has examples of relaxation schemes
+void RelaxBotTemp(MeshBlock *pmb, Real const time, Real const dt,
+               AthenaArray<Real> const &w, AthenaArray<Real> const &r,
+               AthenaArray<Real> const &bcc, AthenaArray<Real> &u,
+               AthenaArray<Real> &s) {
+  // <code>pcoord</code> is a pointer to the Coordinates class and it is a
+  // member of the MeshBlock class. We use the pointer to the MeshBlock class,
+  // <code>pmb</code> to access <code>pcoord</code> and use its member function
+  // to get the spacing of the grid.
+  Real dx = pmb->pcoord->dx1f(pmb->is);
+  Real dy = pmb->pcoord->dx2f(pmb->js);
+
+  // Similarly, we use <code>pmb</code> to find the pointer to the
+  // Thermodynamics class, <code>pthermo</code>.
+  auto pthermo = Thermodynamics::GetInstance();
+
+  // Loop over all grids at the "surface"
+  // solve for u(prognostic) using w(diagnostic)
+  int is = pmb->is, js = pmb->js, ks = pmb->ks; // bot vertical index (is)
+  int ie = pmb->ie, je = pmb->je, ke = pmb->ke;
+  for (int k = ks; k <= ke; ++k) {
+    for (int j = js; j <= je; ++j) {
+      Real temp = pthermo->GetTemp(w.at(k,j,is)); // (pmb,k,j,i) or (w.at(k,j,i))
+      Real dTdt = -(temp-btem)/btau; // (units of K/s)
+      Real cv   = pthermo->GetCv(w.at(k,j,is)); // src/snap/thermodynamics/ (J/kg/K)
+      Real rho  = w(IDN,k,j,is);
+      // update the internal energy
+      u(IEN,k,j,is)  += dt*rho*cv*dTdt; // J/m3
+    }
+  }
+}
+
 // Initialize surface pressure from input file.
+// This is the place where program specific variables are initialized.
+// Note that the function is a member function of the Mesh class rather than the
+// MeshBlock class we have been working with. The difference between class Mesh
+// and class MeshBlock is that class Mesh is an all-encompassing class that
+// manages multiple MeshBlocks while class MeshBlock manages all physics
+// modules. During the instantiation of the classes. class Mesh is instantiated
+// first and then it instantiates all MeshBlocks inside it. Therefore, this
+// subroutine runs before any MeshBlock.
 void Mesh::InitUserMeshData(ParameterInput *pin) {
-  p0 = pin->GetReal("problem", "p0");
+  // The program specific forcing parameters are set here.
+  // They come from the input file, which is parased by the ParameterInput class.
+  p0   = pin->GetReal("problem", "p0"); 
+  Ts   = pin->GetReal("problem", "Ts");
+  Real gamma = pin->GetReal("hydro", "gamma");
+  Real Rd = pin->GetReal("thermodynamics", "Rd");
+  Real cp = gamma / (gamma - 1.) * Rd; // NOTE: does not equal cp at runtime!!
+  Real cv = Rd/(gamma-1.) // NOTE: does not equal cv at runtime!!
+
+  // parameters associated with thermal relaxation scheme at bottom boundary
+  btau = pin->GetReal("problem", "btau"); // relaxation timescale
+  btem = pin->GetReal("problem", "btem"); // relaxation temperature
+
+  // This line code enrolls any forcing functions
+  EnrollUserExplicitSourceFunction(RelaxBotTemp);
 }
 
 // @sect3{Initial condition}
