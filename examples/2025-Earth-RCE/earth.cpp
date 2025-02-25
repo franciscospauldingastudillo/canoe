@@ -143,13 +143,11 @@ void RelaxBotComp(MeshBlock *pmb, Real const time, Real const dt,
 
   // Loop over all vapors in the atmosphere
   for (int n=0; n<NVAPOR; ++n) { 
-    if (n!=iH2O) {
-      continue; // only adjust water vapor composition
-    }
+    if (n!=iH2O) continue; // only adjust water vapor composition
     for (int k = ks; k <= ke; ++k) {
       for (int j = js; j <= je; ++j) {
         // perturb the atmosphere towards saturation at the current T
-        Real rh   = pthermo->RelativeHumidity(pmb,n,k,j,i) //pmb is a pointer to MeshBlock
+        Real rh   = pthermo->RelativeHumidity(pmb,n,k,j,i); //pmb is a pointer to MeshBlock
         Real rho  = w(IDN,k,j,is); 
         Real temp = pthermo->GetTemp(w.at(k,j,is));
         // retreive the vapor mass fraction (or use AirParcelHelper)
@@ -159,7 +157,7 @@ void RelaxBotComp(MeshBlock *pmb, Real const time, Real const dt,
         // relax to saturation over characteristic timescale (kg/kg/s)
         Real dqdt = (qsat-qv)/btau;
         // total change in mixing ratio over model timestep
-        Real dq   = dt*dqdt
+        Real dq   = dt*dqdt;
         // Step 1: change in density (check 1-qv)
         u(IDN,k,j,is) += dq*rho;
         // Step 2: change in momentum
@@ -174,10 +172,9 @@ void RelaxBotComp(MeshBlock *pmb, Real const time, Real const dt,
         // effective specific heat of air
         Real cv   = pthermo->GetCv(w.at(k,j,is)); // src/snap/thermodynamics/ (J/kg/K)
         // get c_{v,v}/c_{v,d}
-        Real cv_ratio = pthermo->GetCvRatio(n) // check with Cheng -> how do I get cvv??
-        Real dEN = u(IEN,k,j,is)*dq + rho*(cvd*cv_ratio-cv)*temp*(dq/(1+dq))
- 
-        u(IEN,k,j,is) += dEN
+        Real cv_ratio = pthermo->GetCvRatio(n); // check with Cheng -> how do I get cvv??
+        Real dEN = u(IEN,k,j,is)*dq + rho*(cvd*cv_ratio-cv)*temp*(dq/(1+dq));
+        u(IEN,k,j,is) += dEN;
       }
     }
   }
@@ -230,7 +227,7 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   Real gamma = pin->GetReal("hydro", "gamma");
   Real Rd = pin->GetReal("thermodynamics", "Rd");
   Real cp = gamma / (gamma - 1.) * Rd; // NOTE: does not equal cp at runtime!!
-  Real cv = Rd/(gamma-1.) // NOTE: does not equal cv at runtime!!
+  Real cv = Rd/(gamma-1.); // NOTE: does not equal cv at runtime!!
 
   // determine the index of water vapor
   auto pindex = IndexMap::GetInstance();
