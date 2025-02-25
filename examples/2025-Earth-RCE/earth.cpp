@@ -32,6 +32,9 @@
 #include <snap/stride_iterator.hpp>
 #include <snap/thermodynamics/thermodynamics.hpp>
 
+// calculations
+#include <cmath>
+
 // @sect3{Preamble}
 
 // We need 3 global variables here
@@ -45,21 +48,26 @@ Real dTdt_body;
 // Same as that in @ref straka, make outputs of temperature and potential
 // temperature.
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
-  AllocateUserOutputVariables(2);
+  AllocateUserOutputVariables(6);
   SetUserOutputVariableName(0, "temp");
   SetUserOutputVariableName(1, "theta");
+  SetUserOutputVariableName(2, "rh_H2O");
+  SetUserOutputVariableName(3, "sqrt(u^2+v^2)");
 }
 
 // Set temperature and potential temperature.
 void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
   auto pthermo = Thermodynamics::GetInstance();
-
   Real gamma = peos->GetGamma();
   for (int k = ks; k <= ke; ++k)
     for (int j = js; j <= je; ++j)
       for (int i = is; i <= ie; ++i) {
         user_out_var(0, k, j, i) = pthermo->GetTemp(this, k, j, i);
         user_out_var(1, k, j, i) = pthermo->PotentialTemp(this, p0, k, j, i);
+        user_out_var(2, k, j, i) = pthermo->RelativeHumidity(this,iH2O,k,j,i); 
+        Real U = phydro->w(IVX,k,j,i);
+        Real V = phydro->w(IVY,k,j,i);
+        user_out_var(3, k, j, i) = std::sqrt(U*U + V*V); 
       }
 }
 
@@ -194,7 +202,8 @@ void BodyHeating(MeshBlock *pmb, Real const time, Real const dt,
   for (int k = ks; k <= ke; ++k) {
     for (int j = js; j <= je; ++j) {
       for (int i = is; i <= ie; ++i){
-        if (w(IPR,k,j,i)<pmin || i==is) continue; // skip the bottommost layer
+        //if (w(IPR,k,j,i)<1.E4 || i==is) continue; // skip the bottommost layer 
+        if (w(IPR,k,j,i)<1.E4 || i==is) continue; // skip the bottommost layer
         Real cv   = pthermo->GetCv(w.at(k,j,is)); // src/snap/thermodynamics/ (J/kg/K)
         Real rho  = w(IDN,k,j,is);
         // update the total energy (J/m3)
