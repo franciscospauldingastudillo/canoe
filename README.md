@@ -222,4 +222,75 @@ mkdir build; cd build
 cmake -DTASK=bryan -DCMAKE_INSTALL_PREFIX=$HOME/canoe/INSTDIR -DEIGEN3_INCLUDE_DIR=$HOME/opt/include/include/eigen3 ..
 make -j 4
 ```
+### 📁 Setup a New Experiment
+
+To set up a new experiment in CANOE, follow the steps below. As an example, we'll walk through how to register a new experiment named `2025-Earth-RCE`.
+
+#### 1. Prepare Experiment Directory
+First, assemble the minimum required files under:
+```
+canoe/examples/2025-Earth-RCE/
+```
+
+#### 2. Register the Experiment in CANOE
+You will need to update three files to properly register the new experiment:
+
+---
+
+#### 🔧 `canoe/examples/CMakeLists.txt`
+
+This file adds `2025-Earth-RCE` to the compilation path. Add the following snippet:
+
+```cmake
+if (${TASK} STREQUAL "earth")
+  add_subdirectory(2025-Earth-RCE)
+endif()
+```
+
+---
+
+#### 🔧 `canoe/examples/2025-Earth-RCE/CMakeLists.txt`
+
+You can copy this file from an existing example:
+
+```bash
+cp canoe/examples/2019-Li-snap/CMakeLists.txt canoe/examples/2025-Earth-RCE/CMakeLists.txt
+```
+
+Then, edit it to reflect the new experiment setup. The file typically includes:
+
+```cmake
+# 1. Compile "earth" problem
+setup_problem(earth)
+
+# 4. Copy input files to run directory
+file(GLOB inputs *.inp *.yaml)
+foreach(input ${inputs})
+  execute_process(COMMAND ln -sf ${input} ${CMAKE_BINARY_DIR}/bin/${input})
+endforeach()
+```
+
+---
+
+#### 🔧 `canoe/cmake/examples/earth.cmake`
+
+This file configures the hydrodynamics and other runtime options for the `earth` problem. Add the following configuration block:
+
+```cmake
+# configuration for earth hydrodynamics
+
+# athena variables
+set(NUMBER_GHOST_CELLS 3)
+set(EQUATION_OF_STATE ideal_moist)
+set(NON_BAROTROPIC_EOS 1)
+set(RSOLVER lmars)
+
+# canoe variables
+set(MPI ON)
+set(PNETCDF ON)
+```
+
+---
+
+Once these changes are made, re-run `cmake` to regenerate the build system and proceed with compiling the code as usual.
 
