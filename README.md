@@ -148,3 +148,77 @@ The build process turns off PVFMM by default. To turn on building PVFMM, use
 ```
 cmake .. -DPVFMM=ON
 ```
+
+## Installation and Setup Instructions on UCLA Hoffman2
+
+Follow the steps below if you are working on Hoffman2.
+
+### 1. Configure Your Shell Environment
+
+Edit your `~/.bashrc` file to ensure all shell processes use the appropriate modules:
+
+```bash
+module load gcc/11.3.0 > /dev/null 2>&1
+module load python/3.12.9 > /dev/null 2>&1
+module load mpich/4.3 > /dev/null 2>&1
+```
+
+### 2. Request an Interactive Session
+
+```bash
+qrsh -l h_data=1G,h_rt=2:00:00,arch=intel-E5* -pe shared 4
+```
+
+### 3. Load Required Environment Modules
+
+```bash
+module load cmake/3.30.0
+module load wget
+module load make
+module load intel/2020.4
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/opt/lib
+export PATH=$PATH:$HOME/opt/bin
+export MPICC=/u/local/mpi/mpich/4.3.0/gcc/11.3.0/bin/mpicc
+export MPICXX=/u/local/mpi/mpich/4.3.0/gcc/11.3.0/bin/mpicxx
+export CPATH=$CPATH:$HOME/opt/include
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:$HOME/opt/include
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$HOME/opt/include
+```
+
+### 4. Set Up Python Virtual Environment
+
+```bash
+cd canoe
+python -m venv ~/.virtualenvs/3.12.9/canoe
+source ~/.virtualenvs/3.12.9/canoe/bin/activate
+python -m pip install --upgrade pip
+pip3 install -r requirements.txt
+```
+
+### 5. Build External Dependencies
+
+```bash
+cd external
+./fetch_cantera.sh
+./fetch_eigen.sh
+./fetch_pnetcdf.sh
+
+./install_eigen.sh
+./install_cantera.sh
+./install_pnetcdf.sh
+```
+
+### 6. Reinstall PyTorch (CPU Version)
+
+```bash
+pip3 install --force-reinstall torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+```
+
+### 7. Compile the Model
+
+```bash
+cmake -DTASK=bryan -DCMAKE_INSTALL_PREFIX=$HOME/canoe/INSTDIR -DEIGEN3_INCLUDE_DIR=$HOME/opt/include/eigen3 ..
+make -j 4
+```
+
