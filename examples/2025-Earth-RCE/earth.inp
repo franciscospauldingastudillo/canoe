@@ -54,11 +54,23 @@ nx2        = 50
 nx3        = 1
 
 <hydro>
-grav_acc1   = -9.8
-gamma       = 1.4         # gamma = C_p/C_v
+grav_acc1     = -9.8
+gamma         = 1.4       # gamma = C_p/C_v (no role in thermo calc.; only for sound speed)
+coriolis_acc1 = 0.0       # rotation in vertical   (rad/s; cartesian)
+coriolis_acc2 = 0.0       # rotation in horizontal (rad/s; cartesian)
+coriolis_acc3 = 0.0       # rotation in horizontal (rad/s; cartesian)
+
 
 <thermodynamics>
 Rd          = 287.
+
+<forcing>
+btau  = 3600.          # timescale of relaxation schemes
+btem  = 300.           # surface relaxation temperature
+bu1   = 0              # surface relaxation x-vel
+bu2   = 0              # surface relaxation y-vel
+bu3   = 0              # surface relaxation z-vel
+dTdt_body = 2.31E-5    # body cooling rate (2 K/day -> K/s)
 
 <problem>
 thermodynamics_config=earth.yaml
@@ -69,5 +81,5 @@ zc    = 260.
 s     = 100.
 a     = 50.
 p0    = 1.E5
-Ts    = 303.15
+Ts    = 300.
 uniform_bubble = false
