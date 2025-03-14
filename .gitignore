@@ -20,7 +20,8 @@ tests/Testing
 .DS_Store
 
 # external
-external/*.tar.gz
+# external/*.tar.gz
+external/*
 
 # vscode
 .vscode
