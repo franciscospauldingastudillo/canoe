@@ -186,6 +186,12 @@ export C_INCLUDE_PATH=$C_INCLUDE_PATH:$HOME/opt/include
 export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$HOME/opt/include
 ```
 
+As a less-cumbersome alternative, I've included canoe/dependencies file that can run everything at once from the command line (provided that you've already set up your python virtual environment; see step 4 below):
+
+```bash
+source ./dependencies
+```
+
 ### 4. Set Up Python Virtual Environment
 
 ```bash
