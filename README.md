@@ -218,7 +218,7 @@ pip3 install --force-reinstall torch torchvision torchaudio --index-url https://
 ### 7. Compile the Model
 
 ```bash
-cmake -DTASK=bryan -DCMAKE_INSTALL_PREFIX=$HOME/canoe/INSTDIR -DEIGEN3_INCLUDE_DIR=$HOME/opt/include/eigen3 ..
+cmake -DTASK=bryan -DCMAKE_INSTALL_PREFIX=$HOME/canoe/INSTDIR -DEIGEN3_INCLUDE_DIR=$HOME/opt/include/include/eigen3 ..
 make -j 4
 ```
 
