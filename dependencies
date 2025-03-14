@@ -1,0 +1,13 @@
+#!/bin/bash
+module load cmake/3.30.0
+module load wget
+module load make
+module load intel/2020.4
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/opt/lib
+export PATH=$PATH:$HOME/opt/bin
+export MPICC=/u/local/mpi/mpich/4.3.0/gcc/11.3.0/bin/mpicc
+export MPICXX=/u/local/mpi/mpich/4.3.0/gcc/11.3.0/bin/mpicxx        
+export CPATH=$CPATH:$HOME/opt/include
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:$HOME/opt/include
+export CPLUS_INCLUDE_PATH=$CPULS_INCLUDE_PATH:$HOME/opt/include
+source ~/.virtualenvs/3.12.9/canoe/bin/activate

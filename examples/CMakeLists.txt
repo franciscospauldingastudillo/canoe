@@ -17,7 +17,7 @@ endif()
 if (${TASK} STREQUAL "straka" OR
     ${TASK} STREQUAL "robert" OR
     ${TASK} STREQUAL "bryan" OR
-    ${TASK} STREQUAL "jcrm")
+    ${TASK} STREQUAL "jvortex")
   add_subdirectory(2019-Li-snap)
 endif()
 
@@ -40,9 +40,7 @@ if (${TASK} STREQUAL "exo2" OR
   add_subdirectory(2023-Chen-exo3)
 endif()
 
-if (${TASK} STREQUAL "rtdry" OR
-    ${TASK} STREQUAL "rtcld" OR
-    ${TASK} STREQUAL "rtcldexo")
+if (${TASK} STREQUAL "hjupiter")
   add_subdirectory(2024-XZhang-cloud-rt)
 endif()
 
@@ -61,3 +59,8 @@ endif()
 if (${TASK} STREQUAL "amars")
   add_subdirectory(2024-CMetz-amars)
 endif()
+
+if (${TASK} STREQUAL "earth")
+  add_subdirectory(2025-Earth-RCE)
+endif()
+
