@@ -302,25 +302,20 @@ Once these changes are made, re-run `cmake` to regenerate the build system and p
 
 ### Run the model
 
-#### 1. Request an Interactive Session
+#### 1. Request an Interactive Session and Load Dependencies
 
 ```bash
 qrsh -l h_data=1G,h_rt=2:00:00,arch=intel-E5* -pe shared 8
-```
-
-#### 2. Load the dependencies
-
-```bash
 source ./dependencies
 ```
 
-#### 3. Run the executable
+#### 2. Run the executable
 
 ```bash
 mpirun -n 8 ./earth.release -i earth.inp -d /u/scratch/f/fspauldi/canoe/earth > log.earth &
 ```
 
-#### 4. Process the output
+#### 3. Process the output
 If the run was successful, a set of .nc files are deposited in the /run directory. To combine them in a single .nc file, 
 
 ```bash
