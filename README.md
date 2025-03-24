@@ -316,7 +316,7 @@ mpirun -n 8 ./earth.release -i earth.inp -d /u/scratch/f/fspauldi/canoe/earth > 
 ```
 
 #### 3. Process the output
-If the run was successful, a set of .nc files are deposited in the /run directory. To combine them in a single .nc file, 
+If the run was successful, a set of .nc files are deposited in the /build directory. To combine them in a single .nc file, 
 
 ```bash
 python3 combine.py
