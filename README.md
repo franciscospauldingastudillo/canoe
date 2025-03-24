@@ -321,4 +321,4 @@ If the run was successful, a set of .nc files are deposited in the /build/bin di
 ```bash
 python3 combine.py
 ```
-To save the output elsewhere, make a symbolic link of the executable to the directory where you want to output your files (e.g., $SCRATCH) and run the code from there.
+To save the output elsewhere, make a symbolic link of the executable (earth.release) to the directory where you want to output your files (e.g., $SCRATCH) and run the code from there.
