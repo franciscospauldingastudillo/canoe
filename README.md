@@ -226,7 +226,7 @@ pip3 install --force-reinstall torch torchvision torchaudio --index-url https://
 ```bash
 mkdir build; cd build
 cmake -DTASK=bryan -DCMAKE_INSTALL_PREFIX=$HOME/canoe/INSTDIR -DEIGEN3_INCLUDE_DIR=$HOME/opt/include/include/eigen3 ..
-make -j 4
+make -j 8
 ```
 ### 📁 Setup a New Experiment
 
