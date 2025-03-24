@@ -312,7 +312,7 @@ source ./dependencies
 #### 2. Run the executable
 
 ```bash
-mpirun -n 8 ./earth.release -i earth.inp -d /u/scratch/f/fspauldi/canoe/earth > log.earth &
+mpirun -n 8 ./earth.release -i earth.inp -d /u/scratch/f/fspauldi/canoe/earth > log.earth 2>&1
 ```
 
 #### 3. Process the output
