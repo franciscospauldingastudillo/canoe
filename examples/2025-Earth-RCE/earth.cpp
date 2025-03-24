@@ -31,6 +31,7 @@
 // snap
 #include <snap/stride_iterator.hpp>
 #include <snap/thermodynamics/thermodynamics.hpp>
+#include <snap/thermodynamics/atm_thermodynamics.hpp>
 
 // calculations
 #include <cmath>
@@ -58,13 +59,14 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
 // Set temperature and potential temperature.
 void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
   auto pthermo = Thermodynamics::GetInstance();
+  auto &w = phydro->w;
   Real gamma = peos->GetGamma();
   for (int k = ks; k <= ke; ++k)
     for (int j = js; j <= je; ++j)
       for (int i = is; i <= ie; ++i) {
-        user_out_var(0, k, j, i) = pthermo->GetTemp(this, k, j, i);
-        user_out_var(1, k, j, i) = pthermo->PotentialTemp(this, p0, k, j, i);
-        user_out_var(2, k, j, i) = pthermo->RelativeHumidity(this,iH2O,k,j,i); 
+        user_out_var(0, k, j, i) = pthermo->GetTemp(w.at(k,j,i));
+        user_out_var(1, k, j, i) = potential_temp(pthermo,w.at(k,j,i), p0);
+        user_out_var(2, k, j, i) = relative_humidity(pthermo,w.at(k,j,i))[iH2O];
         Real U = phydro->w(IVX,k,j,i);
         Real V = phydro->w(IVY,k,j,i);
         user_out_var(3, k, j, i) = std::sqrt(U*U + V*V); 
@@ -155,7 +157,8 @@ void RelaxBotComp(MeshBlock *pmb, Real const time, Real const dt,
     for (int k = ks; k <= ke; ++k) {
       for (int j = js; j <= je; ++j) {
         // perturb the atmosphere towards saturation at the current T
-        Real rh   = pthermo->RelativeHumidity(pmb,n,k,j,i); //pmb is a pointer to MeshBlock
+        Real rh   = relative_humidity(pthermo,w.at(k,j,is))[n];
+        // Real rh   = pthermo->RelativeHumidity(pmb,n,k,j,is); //pmb is a pointer to MeshBlock
         Real rho  = w(IDN,k,j,is); 
         Real temp = pthermo->GetTemp(w.at(k,j,is));
         // retreive the vapor mass fraction (or use AirParcelHelper)
@@ -231,8 +234,8 @@ void BodyHeating(MeshBlock *pmb, Real const time, Real const dt,
 void Mesh::InitUserMeshData(ParameterInput *pin) {
   // The program specific forcing parameters are set here.
   // They come from the input file, which is parased by the ParameterInput class.
-  p0   = pin->GetReal("problem", "p0"); 
-  Ts   = pin->GetReal("problem", "Ts");
+  Real p0   = pin->GetReal("problem", "p0"); 
+  Real Ts   = pin->GetReal("problem", "Ts");
   Real gamma = pin->GetReal("hydro", "gamma");
   Real Rd = pin->GetReal("thermodynamics", "Rd");
   Real cp = gamma / (gamma - 1.) * Rd; // NOTE: does not equal cp at runtime!!
