@@ -60,6 +60,9 @@ coriolis_acc1 = 0.0       # rotation in vertical   (rad/s; cartesian)
 coriolis_acc2 = 0.0       # rotation in horizontal (rad/s; cartesian)
 coriolis_acc3 = 0.0       # rotation in horizontal (rad/s; cartesian)
 
+<species>
+vapor = dry, H2O
+cloud = H2O(l)
 
 <thermodynamics>
 Rd          = 287.
