@@ -321,3 +321,4 @@ If the run was successful, a set of .nc files are deposited in the /build direct
 ```bash
 python3 combine.py
 ```
+To save the output elsewhere, make a symbolic link of the executable to the directory where you want to output your files (e.g., $SCRATCH) and run the code from there.
