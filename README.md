@@ -166,7 +166,7 @@ module load mpich/4.3 > /dev/null 2>&1
 ### 2. Request an Interactive Session
 
 ```bash
-qrsh -l h_data=1G,h_rt=2:00:00,arch=intel-E5* -pe shared 4
+qrsh -l h_data=1G,h_rt=2:00:00,arch=intel-E5* -pe shared 8
 ```
 
 ### 3. Load Required Environment Modules
@@ -300,3 +300,29 @@ set(PNETCDF ON)
 
 Once these changes are made, re-run `cmake` to regenerate the build system and proceed with compiling the code as usual.
 
+### Run the model
+
+#### 1. Request an Interactive Session
+
+```bash
+qrsh -l h_data=1G,h_rt=2:00:00,arch=intel-E5* -pe shared 8
+```
+
+#### 2. Load the dependencies
+
+```bash
+source ./dependencies
+```
+
+#### 3. Run the executable
+
+```bash
+mpirun -n 8 ./earth.release -i earth.inp -d /u/scratch/f/fspauldi/canoe/earth > log.earth &
+```
+
+#### 4. Process the output
+If the run was successful, a set of .nc files are deposited in the /run directory. To combine them in a single .nc file, 
+
+```bash
+python3 combine.py
+```
