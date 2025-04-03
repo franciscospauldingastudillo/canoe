@@ -225,7 +225,7 @@ pip3 install --force-reinstall torch torchvision torchaudio --index-url https://
 
 ```bash
 mkdir build; cd build
-cmake -DTASK=bryan -DCMAKE_INSTALL_PREFIX=$HOME/canoe/INSTDIR -DEIGEN3_INCLUDE_DIR=$HOME/opt/include/include/eigen3 ..
+cmake -DTASK=earth -DCMAKE_INSTALL_PREFIX=$HOME/canoe/INSTDIR -DEIGEN3_INCLUDE_DIR=$HOME/opt/include/include/eigen3 ..
 make -j 8
 ```
 ### 📁 Setup a New Experiment
@@ -267,12 +267,14 @@ Then, edit it to reflect the new experiment setup. The file typically includes:
 
 ```cmake
 # 1. Compile "earth" problem
-setup_problem(earth)
+if (${NVAPOR} EQUAL 1)
+  setup_problem(earth)
+endif()
 
-# 4. Copy input files to run directory
+# 2. Copy input files to run directory
 file(GLOB inputs *.inp *.yaml)
 foreach(input ${inputs})
-  execute_process(COMMAND ln -sf ${input} ${CMAKE_BINARY_DIR}/bin/${input})
+  execute_process(COMMAND ln -sf ${input} ${CMAKE_BINARY_DIR}/bin/${inp})
 endforeach()
 ```
 
@@ -283,17 +285,20 @@ endforeach()
 This file configures the hydrodynamics and other runtime options for the `earth` problem. Add the following configuration block:
 
 ```cmake
-# configuration for earth hydrodynamics
-
+# configuration for earth hydrodynamics (and bryan)
 # athena variables
 set(NUMBER_GHOST_CELLS 3)
-set(EQUATION_OF_STATE ideal_moist)
-set(NON_BAROTROPIC_EOS 1)
-set(RSOLVER lmars)
 
-# canoe variables
-set(MPI ON)
+# canoe configure
+set(NVAPOR 1)
+set(NCLOUD 1)
+set(NPHASE_LEGACY 2)
+set(NETCDF OFF)
 set(PNETCDF ON)
+set(MPI ON)
+set(EQUATION_OF_STATE ideal_moist)
+# set(RSOLVER lmars)
+set(RSOLVER hllc_transform)
 ```
 
 ---
