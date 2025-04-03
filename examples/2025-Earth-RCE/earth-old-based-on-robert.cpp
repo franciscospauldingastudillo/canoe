@@ -2,107 +2,74 @@
  * SNAP Example Program
  *
  * Contributer:
- * 2023: Cheng Li, University of Michigan
- * 2025: Francisco Spaulding-Astudillo, UCLA
- * Contact: chengcli@umich.edu, fspauldinga@ucla.edu
- * Reference: Bryan and Fritsch, 2002
+ * Cheng Li, University of Michigan
+ * Francisco Spaulding-Astudillo, UCLA
+ *
+ * Year: 2025
+ * Contact: chengcli@umich.edu, fspauldinga@gmail.com
+ * Reference: Robert et al., 1992
  * -------------------------------------------------------------------------------------
  */
 
-// athena
+// @sect3{Include files}
+
+// These input files are just like those in the @ref straka, so additional
+// comments are not required.
 #include <athena/athena.hpp>
 #include <athena/athena_arrays.hpp>
-#include <athena/bvals/bvals.hpp>
 #include <athena/coordinates/coordinates.hpp>
 #include <athena/eos/eos.hpp>
 #include <athena/field/field.hpp>
 #include <athena/hydro/hydro.hpp>
 #include <athena/mesh/mesh.hpp>
 #include <athena/parameter_input.hpp>
-
-// application
-#include <application/application.hpp>
-#include <application/exceptions.hpp>
+#include <index_map.hpp>
 
 // canoe
 #include <impl.hpp>
 
-// climath
-#include <climath/core.h>  // sqr
-
-#include <climath/root.hpp>
-
 // snap
-#include <snap/thermodynamics/atm_thermodynamics.hpp>
+#include <snap/stride_iterator.hpp>
 #include <snap/thermodynamics/thermodynamics.hpp>
+#include <snap/thermodynamics/atm_thermodynamics.hpp>
 
-// basic calculations
+// calculations
 #include <cmath>
 
-// Global variables
-int iH2O, iH2Oc;
-Real p0, grav;
+// @sect3{Preamble}
+
+// We need 3 global variables here
+// for communication between InitUserMeshData and forcing functions
+Real p0;
 Real btau, btem;
 Real bu1, bu2, bu3;
+int iH2O;
 Real dTdt_body;
 
+// Same as that in @ref straka, make outputs of temperature and potential
+// temperature.
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
-  AllocateUserOutputVariables(12);
+  AllocateUserOutputVariables(6);
   SetUserOutputVariableName(0, "temp");
-  SetUserOutputVariableName(1, "tempv");
-  SetUserOutputVariableName(2, "enthalpy");
-  SetUserOutputVariableName(3, "entropy");
-  SetUserOutputVariableName(4, "intEng");
-
-  SetUserOutputVariableName(5, "theta");
-  SetUserOutputVariableName(6, "theta_v");
-  SetUserOutputVariableName(7, "mse");
-
-  SetUserOutputVariableName(8, "rh_H2O");
-  SetUserOutputVariableName(9, "theta_e");
-  SetUserOutputVariableName(10, "qtol");
- 
-  SetUserOutputVariableName(11, "sqrt(u^2+v^2)");
+  SetUserOutputVariableName(1, "theta");
+  SetUserOutputVariableName(2, "rh_H2O");
+  SetUserOutputVariableName(3, "sqrt(u^2+v^2)");
 }
 
+// Set temperature and potential temperature.
 void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
   auto pthermo = Thermodynamics::GetInstance();
   auto &w = phydro->w;
-
+  Real gamma = peos->GetGamma();
   for (int k = ks; k <= ke; ++k)
     for (int j = js; j <= je; ++j)
       for (int i = is; i <= ie; ++i) {
-        user_out_var(0, k, j, i) = pthermo->GetTemp(w.at(k, j, i));
-        user_out_var(1, k, j, i) =
-            user_out_var(0, k, j, i) * pthermo->RovRd(w.at(k, j, i));
-        user_out_var(2, k, j, i) = pthermo->GetEnthalpy(w.at(k, j, i));
-        user_out_var(3, k, j, i) = pthermo->GetEntropy(w.at(k, j, i));
-        user_out_var(4, k, j, i) = pthermo->GetInternalEnergy(w.at(k, j, i));
-
-        // theta
-        user_out_var(5, k, j, i) = potential_temp(pthermo, w.at(k, j, i), p0);
-        // theta_v
-        user_out_var(6, k, j, i) =
-            user_out_var(5, k, j, i) * pthermo->RovRd(w.at(k, j, i));
-
-        // mse
-        user_out_var(7, k, j, i) =
-            moist_static_energy(pthermo, w.at(k, j, i), grav * pcoord->x1v(i));
-
-        // rh
-        user_out_var(8, k, j, i) = relative_humidity(pthermo, w.at(k, j, i))[iH2O];
-        // theta_e
-        user_out_var(9, k, j, i) = equivalent_potential_temp(
-            pthermo, w.at(k, j, i), user_out_var(8, k, j, i), p0);
-
-        // total mixing ratio
-        user_out_var(10, k, j, i) = w(iH2O, k, j, i) + w(iH2Oc, k, j, i);
-
-        // wind speed
+        user_out_var(0, k, j, i) = pthermo->GetTemp(w.at(k,j,i));
+        user_out_var(1, k, j, i) = potential_temp(pthermo,w.at(k,j,i), p0);
+        user_out_var(2, k, j, i) = relative_humidity(pthermo,w.at(k,j,i))[iH2O];
         Real U = phydro->w(IVX,k,j,i);
         Real V = phydro->w(IVY,k,j,i);
-        user_out_var(11, k, j, i) = std::sqrt(U*U + V*V);
-
+        user_out_var(3, k, j, i) = std::sqrt(U*U + V*V); 
       }
 }
 
@@ -249,6 +216,12 @@ void BodyHeating(MeshBlock *pmb, Real const time, Real const dt,
   }
 }
 
+
+// In subsequent versions, implement a viscous dissipation and heating at the surface
+// horizontal momentum dissipation is dt*(K*rho*lap(IVX,IVY))
+// mom ~ (kg/m2 s), dmom/dt ~ (kg/m2s2), so dt*(dmom/dt)~flux
+// horizontal dissipative heating  is du = dt*flux*Area_horiz/Vol
+
 // Initialize surface pressure from input file.
 // This is the place where program specific variables are initialized.
 // Note that the function is a member function of the Mesh class rather than the
@@ -259,21 +232,18 @@ void BodyHeating(MeshBlock *pmb, Real const time, Real const dt,
 // first and then it instantiates all MeshBlocks inside it. Therefore, this
 // subroutine runs before any MeshBlock.
 void Mesh::InitUserMeshData(ParameterInput *pin) {
-  auto pthermo = Thermodynamics::GetInstance();
-  grav = -pin->GetReal("hydro", "grav_acc1");
-  p0 = pin->GetReal("problem", "p0");
-
-  // index
-  iH2O = pthermo->SpeciesIndex("H2O");
-  iH2Oc = pthermo->SpeciesIndex("H2O(l)");
-    
   // The program specific forcing parameters are set here.
   // They come from the input file, which is parased by the ParameterInput class.
+  Real p0   = pin->GetReal("problem", "p0"); 
   Real Ts   = pin->GetReal("problem", "Ts");
   Real gamma = pin->GetReal("hydro", "gamma");
   Real Rd = pin->GetReal("thermodynamics", "Rd");
   Real cp = gamma / (gamma - 1.) * Rd; // NOTE: does not equal cp at runtime!!
   Real cv = Rd/(gamma-1.); // NOTE: does not equal cv at runtime!!
+
+  // determine the index of water vapor
+  auto pindex = IndexMap::GetInstance();
+  iH2O = pindex->GetVaporId("H2O"); // from earth.yaml
 
   // parameters associated with thermal relaxation scheme at bottom boundary
   btau = pin->GetReal("forcing", "btau"); // relaxation timescale
@@ -294,71 +264,50 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   //EnrollUserExplicitSourceFunction(BodyHeating);
 }
 
+// @sect3{Initial condition}
+
+// We do not need forcings other than gravity in this problem,
+// so we go directly to the initial condition.
 void MeshBlock::ProblemGenerator(ParameterInput *pin) {
-  auto pthermo = Thermodynamics::GetInstance();
-  auto &w = phydro->w;
-
+  // Similar to @ref straka, read variables in the input file
   Real gamma = pin->GetReal("hydro", "gamma");
-  Real Rd = pin->GetReal("thermodynamics", "Rd");
-  Real cp = gamma / (gamma - 1.) * Rd;  
   Real grav = -phydro->hsrc.GetG1();
-
-  Real Ps = p0;
   Real Ts = pin->GetReal("problem", "Ts");
+  Real Rd = pin->GetReal("thermodynamics", "Rd");
+  Real cp = gamma / (gamma - 1.) * Rd;
 
   Real xc = pin->GetReal("problem", "xc");
+  Real yc = pin->GetReal("problem", "yc");
   Real zc = pin->GetReal("problem", "zc");
-  Real xr = pin->GetReal("problem", "xr");
-  Real zr = pin->GetReal("problem", "zr");
+  Real s = pin->GetReal("problem", "s");
+  Real a = pin->GetReal("problem", "a");
   Real dT = pin->GetReal("problem", "dT");
-  Real qt = pin->GetReal("problem", "qt");
 
-  // construct a reversible adiabat
-  std::vector<Real> yfrac({1. - qt, qt, 0.});
-  for (int k = ks; k <= ke; ++k)
-    for (int j = js; j <= je; ++j) {
-      pthermo->SetMassFractions<Real>(yfrac.data());
-      pthermo->EquilibrateTP(Ts, Ps);
+  // Whether to do a uniform bubble or not.
+  bool uniform_bubble =
+      pin->GetOrAddBoolean("problem", "uniform_bubble", false);
 
-      // half a grid to cell center
-      pthermo->Extrapolate_inplace(pcoord->dx1f(is) / 2., "reversible", grav);
-
-      for (int i = is; i <= ie; ++i) {
-        pthermo->GetPrimitive(w.at(k, j, i));
-        pthermo->Extrapolate_inplace(pcoord->dx1f(i), "reversible", grav);
-      }
-    }
-
-  // add temperature anomaly
+  // Loop over the grids and set initial condition
   for (int k = ks; k <= ke; ++k)
     for (int j = js; j <= je; ++j)
       for (int i = is; i <= ie; ++i) {
         Real x1 = pcoord->x1v(i);
         Real x2 = pcoord->x2v(j);
-        Real L = sqrt(sqr((x2 - xc) / xr) + sqr((x1 - zc) / zr));
-
-        if (L < 1.) {
-          pthermo->SetPrimitive(w.at(k, j, i));
-          Real temp = pthermo->GetTemp();
-          Real pres = pthermo->GetPres();
-
-          Real temp_v = temp * pthermo->RovRd();
-          temp_v *= 1. + dT * sqr(cos(M_PI * L / 2.)) / 300.;
-
-          int err = root(temp, temp + dT * Ts / 300., 1.E-8, &temp,
-                         [&pthermo, temp_v, pres](Real temp) {
-                           pthermo->EquilibrateTP(temp, pres);
-                           return temp * pthermo->RovRd() - temp_v;
-                         });
-
-          //   if (err) throw RuntimeError("pgen", "TVSolver doesn't converge");
-
-          pthermo->SetPrimitive(w.at(k, j, i));
-          pthermo->EquilibrateTP(temp, pres);
-          pthermo->GetPrimitive(w.at(k, j, i));
-        }
+        Real x3 = pcoord->x3v(k);
+        Real r = sqrt((x3 - yc) * (x3 - yc) + (x2 - xc) * (x2 - xc) +
+                      (x1 - zc) * (x1 - zc));
+        Real temp = Ts - grav * x1 / cp;
+        phydro->w(IPR, k, j, i) = p0 * pow(temp / Ts, cp / Rd);
+        if (r <= a)
+          temp += dT * pow(phydro->w(IPR, k, j, i) / p0, Rd / cp);
+        else if (!uniform_bubble)
+          temp += dT * exp(-(r - a) * (r - a) / (s * s)) *
+                  pow(phydro->w(IPR, k, j, i) / p0, Rd / cp);
+        phydro->w(IDN, k, j, i) = phydro->w(IPR, k, j, i) / (Rd * temp);
+        phydro->w(IVX, k, j, i) = phydro->w(IVY, k, j, i) = 0.;
       }
 
-  peos->PrimitiveToConserved(w, pfield->bcc, phydro->u, pcoord, is, ie, js, je,
-                             ks, ke);
+  // Change primitive variables to conserved variables
+  peos->PrimitiveToConserved(phydro->w, pfield->bcc, phydro->u, pcoord, is, ie,
+                             js, je, ks, ke);
 }

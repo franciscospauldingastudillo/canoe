@@ -1,71 +1,70 @@
 <comment>
-problem   = Warm rising bubble test
-reference = Robert et al., 1992
-configure = --prob=robert --nghost=3 -mpi -pnetcdf --pnetcdf_path=${HOME}/opt/
+problem   = Moist rising bubble test
+reference = Bryan and Fritsch, 2002
+configure = --prob=bryan --flux=lmars --nvapor=1 --nphase=2 --nghost=3 -pnetcdf -mpi
 
 <job>
-problem_id = earth # problem ID: basename of output filenames
-tasklist   = ImplicitHydroTasks
+problem_id  = earth         # problem ID: basename of output filenames
+tasklist    = ImplicitHydroTasks
 
 <output1>
-file_type  = hst         # History data dump
-dt         = 180        # time increment between outputs
+file_type   = hst           # History data dump
+dt          = 100.          # time increment between outputs
 
 <output2>
-file_type  = pnetcdf   # Binary data dump
-variable   = prim        # variables to be output
-dt         = 180         # time increment between outputs
+file_type   = pnetcdf       # Netcdf format output
+variable    = prim          # variables to be output
+dt          = 100.          # time increment between outputs
 
 <output3>
-file_type  = pnetcdf
-variable   = uov
-dt         = 180.
+file_type   = pnetcdf       # Netcdf format output
+variable    = uov           # diagnostic variables
+dt          = 100.          # time increment
 
 <time>
-cfl_number = 0.9          # The Courant, Friedrichs, & Lewy (CFL) Number
-nlim       = -1           # cycle limit
-tlim       = 1080         # time limit
-xorder     = 5            # horizontal reconstruction order
-integrator = rk3          # integration method
-ncycle_out = 100          # output frequency
+cfl_number  = 0.9           # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim        = -1            # cycle limit
+tlim        = 1000          # time limit
+xorder      = 5             # horizontal reconstruction order
+integrator  = rk3           # integration method
 
 <mesh>
-nx1        = 300          # Number of zones in X1-direction
-x1min      = 0.           # minimum value of X1
-x1max      = 1.5E3        # maximum value of X1
-ix1_bc     = reflecting   # inner-X1 boundary flag
-ox1_bc     = reflecting   # outer-X1 boundary flag
+nx1         = 200          # Number of zones in X1-direction
+x1min       = 0.            # minimum value of X1
+x1max       = 10.E3         # maximum value of X1
+ix1_bc      = reflecting    # inner-X1 boundary flag
+ox1_bc      = reflecting    # outer-X1 boundary flag
 
-nx2        = 200          # Number of zones in X2-direction
-x2min      = 0.           # minimum value of X2
-x2max      = 1.E3         # maximum value of X2
-ix2_bc     = reflecting   # inner-X2 boundary flag
-ox2_bc     = reflecting   # outer-X2 boundary flag
+nx2         = 400           # Number of zones in X2-direction
+x2min       = 0.            # minimum value of X2
+x2max       = 20.E3         # maximum value of X2
+ix2_bc      = reflecting    # inner-X2 boundary flag
+ox2_bc      = reflecting    # outer-X2 boundary flag
 
-nx3        = 1            # Number of zones in X3-direction
-x3min      = -0.5         # minimum value of X3
-x3max      = 0.5          # maximum value of X3
-ix3_bc     = periodic     # inner-X3 boundary flag
-ox3_bc     = periodic     # outer-X3 boundary flag
+nx3         = 1             # Number of zones in X3-direction
+x3min       = -0.5          # minimum value of X3
+x3max       = 0.5           # maximum value of X3
+ix3_bc      = periodic      # inner-X3 boundary flag
+ox3_bc      = periodic      # outer-X3 boundary flag
 
 <meshblock>
-nx1        = 150
-nx2        = 50
-nx3        = 1
+nx1         = 200
+nx2         = 100
+nx3         = 1
 
 <hydro>
-grav_acc1     = -9.8
-gamma         = 1.4       # gamma = C_p/C_v (no role in thermo calc.; only for sound speed)
-coriolis_acc1 = 0.0       # rotation in vertical   (rad/s; cartesian)
-coriolis_acc2 = 0.0       # rotation in horizontal (rad/s; cartesian)
-coriolis_acc3 = 0.0       # rotation in horizontal (rad/s; cartesian)
-
-<species>
-vapor = dry, H2O
-cloud = H2O(l)
+grav_acc1   = -9.81
+gamma       = 1.4           # gamma = C_p/C_v (no role in thermo calc.; only for sound speed)
+coriolis_acc1 = 0.0         # rotation in vertical   (rad/s; cartesian)
+coriolis_acc2 = 0.0         # rotation in horizontal (rad/s; cartesian)
+coriolis_acc3 = 0.0         # rotation in horizontal (rad/s; cartesian)
 
 <thermodynamics>
 Rd          = 287.
+
+<species>
+vapor = H2O
+cloud = H2O(l)
 
 <forcing>
 btau  = 3600.          # timescale of relaxation schemes
@@ -76,13 +75,14 @@ bu3   = 0              # surface relaxation z-vel
 dTdt_body = 2.31E-5    # body cooling rate (2 K/day -> K/s)
 
 <problem>
-thermodynamics_config=earth.yaml
-dT    = 0.5
-xc    = 500.
-yc    = 0.
-zc    = 260.
-s     = 100.
-a     = 50.
+thermodynamics_config = earth.yaml
+
+dT    = 2.0
+xc    = 10.E3
+zc    = 2.E3
+xr    = 2.E3
+zr    = 2.E3
 p0    = 1.E5
-Ts    = 300.
-uniform_bubble = false
+Ts    = 289.85
+qt    = 0.0196
+#qt    = 0.0

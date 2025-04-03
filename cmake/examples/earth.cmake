@@ -1,10 +1,15 @@
-# configuration for earth hydrodynamics
+# configuration for earth hydrodynamics (also, bryan)
 
 # athena variables
 set(NUMBER_GHOST_CELLS 3)
-set(EQUATION_OF_STATE ideal_moist)
-set(NON_BAROTROPIC_EOS 1)
-set(RSOLVER lmars)
-# canoe variables
-set(MPI ON)
+
+# canoe configure
+set(NVAPOR 1)
+set(NCLOUD 1)
+set(NPHASE_LEGACY 2)
+set(NETCDF OFF)
 set(PNETCDF ON)
+set(MPI ON)
+set(EQUATION_OF_STATE ideal_moist)
+# set(RSOLVER lmars)
+set(RSOLVER hllc_transform)

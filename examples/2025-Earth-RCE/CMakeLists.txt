@@ -3,7 +3,9 @@
 # ============================================
 
 # 1. Compile "earth" problem
-setup_problem(earth)
+if (${NVAPOR} EQUAL 1)
+  setup_problem(earth)
+endif()
 
 # 4. Copy input files to run directory
 file(GLOB inputs *.inp *.yaml)
